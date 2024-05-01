@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Product {
@@ -43,4 +43,18 @@ export class Product {
     @Column('text')
     gender: string;
 
+    //Este decorador permite que cada vez que 
+    //se inserte se aplique la condición mostrada
+    @BeforeInsert()
+    checkInsertSlug() {
+        
+        if (!this.slug) {
+            this.slug = this.title;
+        }
+
+        this.slug = this.slug
+        .toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll("'", '');
+    }
 }
