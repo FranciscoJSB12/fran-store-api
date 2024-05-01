@@ -45,7 +45,18 @@ export class ProductsService {
     if(isUUID(term)) {
       product = await this.productRepository.findOneBy({ id: term });
     } else {
-      product = await this.productRepository.findOneBy({ slug: term })
+      //product = await this.productRepository.findOneBy({ slug: term })
+      const queryBuilder = this.productRepository.createQueryBuilder();
+      //La sintaxis de =:title o =:slug quiere decir que sea igual a los argumentos que les vamos a dar al where
+      product = await queryBuilder.where('UPPER(title) =:title or slug =:slug', {
+        title: term.toUpperCase(),
+        slug: term.toLowerCase()
+      }).getOne();
+      //IMPORTANTE: UPPER(title) es una función de progress para llevar ese campo a mayúsculas
+      /*Es una función para hacer un query
+      se debería crear un indice propio en la base de datos
+      para asegurarse que se busca el upper del
+      titulo porque ahí no está usando el indice*/
     }
     
     if (!product) {
