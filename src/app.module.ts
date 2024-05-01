@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       synchronize: true
       //En producción generalmente este valor se deja en falso (synchronize)
       //también se puede crear una variable de entorno para manejar la sincronización
-    })
+    }),
+    ProductsModule
   ],
 })
 export class AppModule {}
