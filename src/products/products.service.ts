@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
 import { Product, ProductImage } from './entities';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -16,7 +16,8 @@ export class ProductsService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>, 
     @InjectRepository(ProductImage)
-    private readonly productImageRepository: Repository<ProductImage>
+    private readonly productImageRepository: Repository<ProductImage>,
+    private readonly dataSource: DataSource
   ){}
 
   async create(createProductDto: CreateProductDto) {
@@ -98,20 +99,55 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
+    
+    const { images, ...toUpdate } = updateProductDto;
+
     /*IMPORTANTE: de esta forma le decimos a typeorm
     que busque un producto por el ID y cargue las propiedades que estén en updateProductDto, esto
     actualiza, solo hace la preparación para ello.
     */
-    const product = await this.productRepository.preload({ id: id, ...updateProductDto, images: [] });
+    const product = await this.productRepository.preload({ id, ...toUpdate });
 
     if (!product) {
       throw new NotFoundException(`Product with id: ${id}not found`);
     }
 
+    /*query runner: lo utilizaremos para hacer una transacción(una query), este necesita
+    de un commit para realizar la misma*/
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    //Primero nos conectamos a la base de datos
+    await queryRunner.connect();
+
+    //Iniciamos la transacción, todo lo que se haga con el query runner se va a añadir
+    //a las transacciones
+    await queryRunner.startTransaction();
+
     try {
-      await this.productRepository.save(product);
-      return product;
+
+      if(images) {
+        await queryRunner.manager.delete(ProductImage, { product: id });
+        //Esta instrucción se traduce como elimina todas las productImages con columna productId sea igual a id
+        //La lógica que estamos aplicando es que si nos mandan imagenes, borramos las anteriores
+        product.images = images.map(image => this.productImageRepository.create({ url: image }))
+        //IMPORTANTE: En la línea product.images no estamos impactando la base de datos
+      }
+      
+      await queryRunner.manager.save(product);
+      //await queryRunner.manager.save(product); esta línea aún no impacta la base de datos
+
+      //await this.productRepository.save(product); ya no hace falta esta línea por queryRunner
+
+      await queryRunner.commitTransaction();
+      //await queryRunner.commitTransaction(); Esta línea es super importante, hay que hacer el commit
+
+      await queryRunner.release();
+      //await queryRunner.release(); Esta línea libera al queryRunner
+
+      return this.findOnePlain(id);
     } catch (err) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       this.handleDBExceptions(err);
     }
   }
