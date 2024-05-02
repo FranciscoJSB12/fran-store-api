@@ -66,8 +66,23 @@ export class ProductsService {
     return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    /*IMPORTANTE: de esta forma le decimos a typeorm
+    que busque un producto por el ID y cargue las propiedades que estén en updateProductDto, esto
+    actualiza, solo hace la preparación para ello.
+    */
+    const product = await this.productRepository.preload({ id: id, ...updateProductDto });
+
+    if (!product) {
+      throw new NotFoundException(`Product with id: ${id}not found`);
+    }
+
+    try {
+      await this.productRepository.save(product);
+      return product;
+    } catch (err) {
+      this.handleDBExceptions(err);
+    }
   }
 
   async remove(id: string) {
