@@ -56,7 +56,9 @@ export class Product {
         //Ahora se indica cómo se relaciona productImage con con product
         (productImage) => productImage.product,
         //Esta ultima permite que si se elimina un producto genera que se eliminen las imagenes asociadas 
-        { cascade: true }
+        { cascade: true, eager: true }
+        /*Este eager: true permite que cada vez que se cargue un producto en
+        automatico se trae las imágenes*/
     )
     images?: ProductImage[];
 

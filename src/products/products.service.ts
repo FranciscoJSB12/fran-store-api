@@ -36,13 +36,23 @@ export class ProductsService {
     }
   }
 
-  findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
 
-    return this.productRepository.find({
+    const products = await this.productRepository.find({
       take: limit,
-      skip: offset
+      skip: offset,
+      /*Acá en relations indicamos la relación que nos interesa llenar*/
+      relations: {
+        //Bucamos el nombre que le definimos en el entity
+        images: true
+      }
     });
+
+    return products.map(product => ({
+      ...product,
+      images: product.images.map(image => image.url)
+    }));
   }
 
   async findOne(term: string) {
@@ -53,12 +63,18 @@ export class ProductsService {
       product = await this.productRepository.findOneBy({ id: term });
     } else {
       //product = await this.productRepository.findOneBy({ slug: term })
-      const queryBuilder = this.productRepository.createQueryBuilder();
+      //'prod' es un alias para la tabla de producto, estamos en productRepository entonces decimo prod(la tabla principal)
+      const queryBuilder = this.productRepository.createQueryBuilder('prod');
       //La sintaxis de =:title o =:slug quiere decir que sea igual a los argumentos que les vamos a dar al where
-      product = await queryBuilder.where('UPPER(title) =:title or slug =:slug', {
-        title: term.toUpperCase(),
-        slug: term.toLowerCase()
-      }).getOne();
+      product = await queryBuilder
+        .where('UPPER(title) =:title or slug =:slug', {
+            title: term.toUpperCase(),
+            slug: term.toLowerCase()})
+        .leftJoinAndSelect('prod.images', 'prodImages')
+      //Este leftJoinAndSelect hace falta porque se está usando query builder
+      //'prod.images' es simplemente el punto donde queremos hacer el left join
+      //prodImages es un alias para hacer otro join
+        .getOne();
       //IMPORTANTE: UPPER(title) es una función de progress para llevar ese campo a mayúsculas
       /*Es una función para hacer un query
       se debería crear un indice propio en la base de datos
@@ -71,6 +87,14 @@ export class ProductsService {
     }
     
     return product;
+  }
+
+  async findOnePlain(term: string) {
+    const { images = [], ...rest } = await this.findOne(term);
+    return {
+      ...rest,
+      images: images.map(image => image.url),
+    }
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
