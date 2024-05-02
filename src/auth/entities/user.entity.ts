@@ -11,7 +11,11 @@ export class User {
     })
     email: string;
 
-    @Column('text')
+    @Column('text', {
+        select: false
+        //Esto evita que al hacer uso de métodos como find o el query builder venga
+        //la contraseña
+    })
     password: string;
 
     @Column('text')
