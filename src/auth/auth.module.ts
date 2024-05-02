@@ -6,11 +6,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from './entities/user.entity';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService],
+  //COMO ES UN PROVIDER (EL JWTSTRATEGY) LO PONGO EN LOS PROVIDERS, también lo exportamos porque se puede necesitar en otro lugar
+  providers: [AuthService, JwtStrategy],
   imports: [
+    ConfigModule,
+    //PENDIENTE: usaste ese config service en jwt strategy entonces aquí auth.module tienes que importar el ConfigModule
     TypeOrmModule.forFeature([
       User
     ]),
@@ -34,6 +38,7 @@ import { User } from './entities/user.entity';
     //   }
     // })
   ],
-  exports: [ TypeOrmModule ]
+  //LO EXPORTÉ AQUI (EL JWTSTRATEGY) por si quiero verificar el token de forma manual
+  exports: [ TypeOrmModule, JwtStrategy, PassportModule, JwtModule ]
 })
 export class AuthModule {}
