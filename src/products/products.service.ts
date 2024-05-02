@@ -157,6 +157,19 @@ export class ProductsService {
     await this.productRepository.remove(product);
   }
 
+  //CUIDADO: deleteAllProduct es una función que va a barrer la base de datos entera
+  async deleteAllProducts () {
+    const query = this.productRepository.createQueryBuilder('product');
+    //const query = this.productImageRepository.createQueryBuilder('product'); ese 'product' significa que le estamos poniendo un alias llamado product
+    try {
+      return await query.delete().where({}).execute();
+      /*return await query.delete(); crea un delete de todos los registros en products y ese
+      where({}) así sin condición va a ser que seleccione todos los productos*/
+    } catch (err) {
+      this.handleDBExceptions(err);
+    }
+  }
+
   private handleDBExceptions(err: any) {
     if (err.code === '23505') {
       throw new BadRequestException(err.detail);
