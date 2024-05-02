@@ -15,7 +15,13 @@ npm install
 docker compose up -d
 ```
 
-6. Correr el proyecto:
+6. Ejecutar el seed:
+
+```
+http://localhost:3000/api/seed
+```
+
+7. Correr el proyecto:
 
 ```
 npm run start:dev
