@@ -1,4 +1,5 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ProductImage } from "./";
 
 @Entity()
 export class Product {
@@ -48,6 +49,16 @@ export class Product {
         default: []
     })
     tags: string[];
+
+    @OneToMany(
+        //Esto indica que regresa un ProductImage, asegurate de que regresa la clase
+        () => ProductImage,
+        //Ahora se indica cómo se relaciona productImage con con product
+        (productImage) => productImage.product,
+        //Esta ultima permite que si se elimina un producto genera que se eliminen las imagenes asociadas 
+        { cascade: true }
+    )
+    images?: ProductImage[];
 
     //Este decorador permite que cada vez que 
     //se inserte se aplique la condición mostrada
