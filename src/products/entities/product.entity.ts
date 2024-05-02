@@ -43,6 +43,12 @@ export class Product {
     @Column('text')
     gender: string;
 
+    @Column('text', {
+        array: true,
+        default: []
+    })
+    tags: string[];
+
     //Este decorador permite que cada vez que 
     //se inserte se aplique la condición mostrada
     @BeforeInsert()
