@@ -41,8 +41,15 @@ export class AuthController {
   }
 
   @Get('private2')
+  /*El decorador @SetMetadata() sirve para adicionar
+  información al controlador o método que quiero ejecutar,
+  escribirlo únicamente no basta, hay que indicar que se 
+  debe evaluar, para eso podemos crear un custom guard
+  */
   @SetMetadata('roles', ['admin', 'super-user'])
   @UseGuards(AuthGuard(), UserRoleGuard)
+  /*  @UseGuards(AuthGuard(), UserRoleGuard), es importante
+  ver que solo se le pasa la referencia del UseRoleGuard*/
   privateRoute2(
     @GetUser() user: User,
   ) {
