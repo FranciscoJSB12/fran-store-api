@@ -40,5 +40,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   ],
   //LO EXPORTÉ AQUI (EL JWTSTRATEGY) por si quiero verificar el token de forma manual
   exports: [ TypeOrmModule, JwtStrategy, PassportModule, JwtModule ]
+  //Exportamos JwtStrategy y el PassportModule para usar todo lo relacionado a passport fuera del módulo
 })
 export class AuthModule {}
