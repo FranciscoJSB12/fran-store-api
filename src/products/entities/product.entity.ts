@@ -1,5 +1,6 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ProductImage } from "./";
+import { User } from "../../auth/entities/user.entity";
 
 @Entity({ name: 'products' })
 export class Product {
@@ -61,6 +62,14 @@ export class Product {
         automatico se trae las imágenes*/
     )
     images?: ProductImage[];
+
+    @ManyToOne(
+        () => User,
+        (user) => user.product,
+        { eager: true },
+        //Ese eager: true carga la relación, de forma que cuando lo pidas te trae también el usuario que lo creó
+    )
+    user: User;
 
     //Este decorador permite que cada vez que 
     //se inserte se aplique la condición mostrada
