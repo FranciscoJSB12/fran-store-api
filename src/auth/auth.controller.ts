@@ -1,14 +1,12 @@
-import { Controller, Post, Get, Headers, UseGuards, Body, SetMetadata } from '@nestjs/common';
+import { Controller, Post, Get, Headers, UseGuards, Body } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { IncomingHttpHeaders } from 'http';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LogInUserDto } from './dto';
 import { User } from './entities/user.entity';
-import { GetRawHeaders, GetUser } from './decorators';
+import { RoleProtected, Auth, GetRawHeaders, GetUser } from './decorators';
 import { UserRoleGuard } from './guards/user-role/user-role.guard';
-import { RoleProtected } from './decorators/role-protected/role-protected.decorator';
 import { ValidRoles } from './interfaces/valid-roles';
-
 
 @Controller('auth')
 export class AuthController {
@@ -62,4 +60,14 @@ export class AuthController {
     }
   }
 
+  @Get('private3')
+  @Auth(ValidRoles.admin)
+  privateRoute3(
+    @GetUser() user: User,
+  ) {
+    return {
+      ok: true,
+      message: 'this is a private route3',
+    }
+  }
 }
