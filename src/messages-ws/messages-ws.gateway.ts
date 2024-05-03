@@ -15,15 +15,17 @@ export class MessagesWsGateway implements OnGatewayConnection, OnGatewayDisconne
     private readonly jwtService: JwtService
   ) {}
 
-  handleConnection(client: Socket) {
-    this.messagesWsService.registerClient(client);
+  //Con este método manejamos la conexión inicial del servidor
+  async handleConnection(client: Socket) {
     //console.log({ conectados: this.messagesWsService.getConnectedClients()});
     const token = client.handshake.headers.authentication as string; //IMPORTANTE: la variable token almacenará los headers que mandemos desde el cliente, por ello hay que ver el nombre que se le dio en el cliente para poder desestructurarlo, en este caso fue authentication.
     let payload: JwtPayload;
 
     try {
       payload = this.jwtService.verify(token);
-      //jwtService.verify nos da el payload del token
+      //jwtService.verify nos da el payload del token, de no ser válido corta la conexión al servidor
+      await this.messagesWsService.registerClient(client, payload.id);
+
     } catch (err) { 
       client.disconnect();
       return;
@@ -53,6 +55,7 @@ export class MessagesWsGateway implements OnGatewayConnection, OnGatewayDisconne
 
     //Emitir a todos los que estén conectados, incluyendo a quien emitió el mensaje
     this.wss.emit('message-from-server', {
+      fullName: this.messagesWsService.getUserFullName(client.id),
       message: payload.message
     });
   }
