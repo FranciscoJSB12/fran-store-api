@@ -22,6 +22,14 @@ export class AuthController {
     return this.authService.logIn(logInUserDto);
   }
 
+  @Get('renew-token')
+  @Auth()
+  checkAuthStatus(
+    @GetUser() user: User,
+  ) {
+    return this.authService.checkAuthStatus(user);
+  }
+
   @Get('private')
   @UseGuards(AuthGuard())
   testingPrivateRoute(
