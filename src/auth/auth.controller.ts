@@ -6,6 +6,8 @@ import { CreateUserDto, LogInUserDto } from './dto';
 import { User } from './entities/user.entity';
 import { GetRawHeaders, GetUser } from './decorators';
 import { UserRoleGuard } from './guards/user-role/user-role.guard';
+import { RoleProtected } from './decorators/role-protected/role-protected.decorator';
+import { ValidRoles } from './interfaces/valid-roles';
 
 
 @Controller('auth')
@@ -46,7 +48,8 @@ export class AuthController {
   escribirlo únicamente no basta, hay que indicar que se 
   debe evaluar, para eso podemos crear un custom guard
   */
-  @SetMetadata('roles', ['admin', 'super-user'])
+  //@SetMetadata('roles', ['admin', 'super-user'])
+  @RoleProtected(ValidRoles.superUser, ValidRoles.admin)
   @UseGuards(AuthGuard(), UserRoleGuard)
   /*  @UseGuards(AuthGuard(), UserRoleGuard), es importante
   ver que solo se le pasa la referencia del UseRoleGuard*/
