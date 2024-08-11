@@ -6,7 +6,9 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { Auth, GetUser } from '../auth/decorators';
 import { ValidRoles } from '../auth/interfaces/valid-roles';
 import { User } from '../auth/entities/user.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Products')
 @Controller('products')
 //@Auth()
 //IMPORTANTE: Usar el decorador Auth() en esa posición implica que se debe estar autenticado para usar cualquiera de las rutas
